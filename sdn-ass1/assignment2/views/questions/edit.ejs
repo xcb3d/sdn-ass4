@@ -1,0 +1,131 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+          <li class="breadcrumb-item"><a href="/questions">Câu hỏi</a></li>
+          <li class="breadcrumb-item"><a href="/questions/<%= question._id %>">Chi tiết</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Sửa</li>
+        </ol>
+      </nav>
+
+      <div class="bg-white border rounded p-4">
+        <div class="pb-2 mb-4 border-bottom">
+          <h1 class="h4 fw-bold">Sửa câu hỏi</h1>
+        </div>
+
+        <form action="/questions/<%= question._id %>?_method=PUT" method="POST" id="question-form">
+          <div class="mb-3">
+            <label for="text" class="form-label small fw-bold">Câu hỏi</label>
+            <input type="text" class="form-control form-control-sm" id="text" name="text" value="<%= question.text %>" required>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label small fw-bold mb-0">Đáp án lựa chọn</label>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-option">Thêm đáp án</button>
+            </div>
+            <div id="options-container" class="row g-2">
+              <% question.options.forEach((opt, idx) => { %>
+                <div class="col-md-6 option-item-wrapper">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light index-label"><%= idx %></span>
+                    <input type="text" class="form-control" name="options" value="<%= opt %>" required placeholder="Đáp án...">
+                    <button type="button" class="btn btn-outline-danger btn-remove-option">Xóa</button>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="correctAnswerIndex" class="form-label small fw-bold">Đáp án đúng (chọn theo Index)</label>
+            <select class="form-select form-select-sm" id="correctAnswerIndex" name="correctAnswerIndex" data-selected="<%= question.correctAnswerIndex %>" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label for="keywords" class="form-label small fw-bold">Từ khóa (phân cách bằng dấu phẩy)</label>
+            <input type="text" class="form-control form-control-sm" id="keywords" name="keywords" value="<%= question.keywords.join(', ') %>">
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <a href="/questions/<%= question._id %>" class="btn btn-secondary btn-sm">Hủy</a>
+            <button type="submit" class="btn btn-primary btn-sm">Lưu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('options-container');
+    const select = document.getElementById('correctAnswerIndex');
+    const btnAdd = document.getElementById('btn-add-option');
+    const initialSelected = select.getAttribute('data-selected');
+
+    function updateOptions() {
+      const items = container.querySelectorAll('.option-item-wrapper');
+      
+      // Update label index and placeholders
+      items.forEach((item, idx) => {
+        item.querySelector('.index-label').textContent = idx;
+        const input = item.querySelector('input[name="options"]');
+        input.placeholder = 'Đáp án...';
+      });
+
+      // Update correct answer select options
+      const currentSelected = select.value || initialSelected;
+      select.innerHTML = '';
+      items.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = 'Đáp án index ' + idx;
+        if (currentSelected === String(idx)) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+      
+      // Ensure we have a selection if nothing is selected or previous selected is out of bounds
+      if (!select.value && items.length > 0) {
+        select.value = "0";
+      }
+    }
+
+    // Add option
+    btnAdd.addEventListener('click', function() {
+      const div = document.createElement('div');
+      div.className = 'col-md-6 option-item-wrapper';
+      div.innerHTML = `
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light index-label"></span>
+          <input type="text" class="form-control" name="options" required>
+          <button type="button" class="btn btn-outline-danger btn-remove-option">Xóa</button>
+        </div>
+      `;
+      container.appendChild(div);
+      updateOptions();
+    });
+
+    // Remove option (Event delegation)
+    container.addEventListener('click', function(e) {
+      if (e.target.classList.contains('btn-remove-option') || e.target.closest('.btn-remove-option')) {
+        const item = e.target.closest('.option-item-wrapper');
+        const items = container.querySelectorAll('.option-item-wrapper');
+        if (items.length <= 2) {
+          alert('Một câu hỏi cần tối thiểu 2 đáp án lựa chọn.');
+          return;
+        }
+        item.remove();
+        updateOptions();
+      }
+    });
+
+    // Initial update
+    updateOptions();
+  });
+</script>

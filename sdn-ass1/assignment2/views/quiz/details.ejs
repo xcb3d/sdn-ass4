@@ -1,0 +1,253 @@
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="/quizzes">Quiz</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= quiz.title %></li>
+    </ol>
+  </nav>
+
+  <!-- Quiz Details Header -->
+  <div class="bg-white border rounded p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+      <div>
+        <h1 class="h4 fw-bold mb-1"><%= quiz.title %></h1>
+        <p class="text-muted small mb-0"><%= quiz.description %></p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/quizzes/<%= quiz._id %>/populate" class="btn btn-primary btn-sm">Điền</a>
+        <a href="/quizzes/<%= quiz._id %>/edit" class="btn btn-warning btn-sm">Sửa</a>
+        <form action="/quizzes/<%= quiz._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa Quiz này không?');" class="d-inline">
+          <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Quiz Questions List -->
+    <div class="col-lg-8">
+      <h2 class="h5 fw-bold mb-3">Danh sách câu hỏi (<%= quiz.questions.length %>)</h2>
+
+      <% if (quiz.questions && quiz.questions.length > 0) { %>
+        <div class="list-group">
+          <% quiz.questions.forEach((q, index) => { %>
+            <div class="list-group-item p-3 mb-2 border rounded bg-white">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#q_collapse_<%= q._id %>" aria-expanded="false" aria-controls="q_collapse_<%= q._id %>">
+                  <%= index + 1 %>. <%= q.text %> <small class="text-muted fw-normal ms-2">(xem chi tiết)</small>
+                </span>
+                <a href="/questions/<%= q._id %>/edit" class="btn btn-outline-warning btn-sm py-0 px-2" style="font-size: 0.75rem;">Sửa</a>
+              </div>
+
+              <!-- Collapsible Options -->
+              <div class="collapse mt-3" id="q_collapse_<%= q._id %>">
+                <div class="row g-2">
+                  <% q.options.forEach((opt, oIdx) => { %>
+                    <div class="col-md-6">
+                      <div class="p-2 border rounded small <%= oIdx === q.correctAnswerIndex ? 'bg-light border-dark' : 'bg-light' %>">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span>
+                            <strong><%= String.fromCharCode(65 + oIdx) %>.</strong> <%= opt %>
+                          </span>
+                          <% if (oIdx === q.correctAnswerIndex) { %>
+                            <span class="text-success small fw-bold">✓</span>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+                <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                  <div>
+                    <% q.keywords.forEach(kw => { %>
+                      <span class="badge bg-light text-dark border"><%= kw %></span>
+                    <% }) %>
+                  </div>
+                  <span class="text-muted small" style="font-size: 0.75rem;"><%= new Date(q.updatedAt).toLocaleDateString('vi-VN') %></span>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="p-4 text-center bg-white border rounded">
+          <p class="text-muted mb-0">Chưa có câu hỏi nào trong bộ đề này.</p>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Right Sidebar Form Operations (Accordion) -->
+    <div class="col-lg-4">
+      <div class="accordion" id="quizActionsAccordion">
+        
+        <!-- Add Existing Questions -->
+        <div class="accordion-item bg-white border rounded mb-3">
+          <h2 class="accordion-header" id="headingAddExisting">
+            <button class="accordion-button collapsed py-2 text-dark bg-white border-0 fw-bold small text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddExisting" aria-expanded="false" aria-controls="collapseAddExisting">
+              Thêm câu hỏi có sẵn
+            </button>
+          </h2>
+          <div id="collapseAddExisting" class="accordion-collapse collapse" aria-labelledby="headingAddExisting" data-bs-parent="#quizActionsAccordion">
+            <div class="accordion-body border-top p-3">
+              <% 
+                const quizQuestionIds = quiz.questions.map(q => q._id.toString());
+                const availableQuestions = allQuestions.filter(q => !quizQuestionIds.includes(q._id.toString()));
+              %>
+
+              <% if (availableQuestions.length > 0) { %>
+                <form action="/quizzes/<%= quiz._id %>/add-questions" method="POST">
+                  <div class="mb-3 overflow-y-auto" style="max-height: 200px;">
+                    <% availableQuestions.forEach(q => { %>
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="questions" value="<%= q._id %>" id="add_q_<%= q._id %>">
+                        <label class="form-check-label text-dark small" for="add_q_<%= q._id %>">
+                          <%= q.text %>
+                        </label>
+                      </div>
+                    <% }) %>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-sm">Thêm</button>
+                  </div>
+                </form>
+              <% } else { %>
+                <p class="text-muted small text-center mb-0">Không có câu hỏi nào khác.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add New Question Directly -->
+        <div class="accordion-item bg-white border rounded">
+          <h2 class="accordion-header" id="headingAddNew">
+            <button class="accordion-button collapsed py-2 text-dark bg-white border-0 fw-bold small text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddNew" aria-expanded="false" aria-controls="collapseAddNew">
+              Thêm câu hỏi mới
+            </button>
+          </h2>
+          <div id="collapseAddNew" class="accordion-collapse collapse" aria-labelledby="headingAddNew" data-bs-parent="#quizActionsAccordion">
+            <div class="accordion-body border-top p-3">
+              <form action="/quizzes/<%= quiz._id %>/question" method="POST" id="new-question-form">
+                <div class="mb-2">
+                  <label for="new_q_text" class="form-label small fw-bold">Câu hỏi</label>
+                  <input type="text" class="form-control form-control-sm" id="new_q_text" name="text" required placeholder="Nhập câu hỏi...">
+                </div>
+
+                <div class="mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label small fw-bold mb-0">Các đáp án</label>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" style="font-size: 0.75rem;" id="btn-add-new-q-opt">Thêm</button>
+                  </div>
+                  <div id="new-q-options-container">
+                    <div class="input-group input-group-sm mb-1 new-q-opt-wrapper">
+                      <span class="input-group-text bg-light new-q-index-label">0</span>
+                      <input type="text" class="form-control" name="options" required placeholder="Đáp án...">
+                      <button type="button" class="btn btn-outline-danger btn-remove-new-q-opt">Xóa</button>
+                    </div>
+                    <div class="input-group input-group-sm mb-1 new-q-opt-wrapper">
+                      <span class="input-group-text bg-light new-q-index-label">1</span>
+                      <input type="text" class="form-control" name="options" required placeholder="Đáp án...">
+                      <button type="button" class="btn btn-outline-danger btn-remove-new-q-opt">Xóa</button>
+                    </div>
+                    <div class="input-group input-group-sm mb-1 new-q-opt-wrapper">
+                      <span class="input-group-text bg-light new-q-index-label">2</span>
+                      <input type="text" class="form-control" name="options" required placeholder="Đáp án...">
+                      <button type="button" class="btn btn-outline-danger btn-remove-new-q-opt">Xóa</button>
+                    </div>
+                    <div class="input-group input-group-sm mb-1 new-q-opt-wrapper">
+                      <span class="input-group-text bg-light new-q-index-label">3</span>
+                      <input type="text" class="form-control" name="options" required placeholder="Đáp án...">
+                      <button type="button" class="btn btn-outline-danger btn-remove-new-q-opt">Xóa</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-2">
+                  <label for="new_q_correct" class="form-label small fw-bold">Đáp án đúng</label>
+                  <select class="form-select form-select-sm" id="new_q_correct" name="correctAnswerIndex" required>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="new_q_keywords" class="form-label small fw-bold">Từ khóa (dấu phẩy ngăn cách)</label>
+                  <input type="text" class="form-control form-control-sm" id="new_q_keywords" name="keywords" placeholder="Ví dụ: geography, capital...">
+                </div>
+
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary btn-sm">Tạo &amp; Thêm</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handling dynamic options for new question form inside Quiz Details
+    const container = document.getElementById('new-q-options-container');
+    const select = document.getElementById('new_q_correct');
+    const btnAdd = document.getElementById('btn-add-new-q-opt');
+
+    if (container && select && btnAdd) {
+      function updateNewQOptions() {
+        const items = container.querySelectorAll('.new-q-opt-wrapper');
+        
+        // Update labels and placeholders
+        items.forEach((item, idx) => {
+          item.querySelector('.new-q-index-label').textContent = idx;
+          const input = item.querySelector('input[name="options"]');
+          input.placeholder = 'Đáp án...';
+        });
+
+        // Update select options
+        const currentSelected = select.value;
+        select.innerHTML = '';
+        items.forEach((item, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = 'Đáp án index ' + idx;
+          if (currentSelected === String(idx)) {
+            opt.selected = true;
+          }
+          select.appendChild(opt);
+        });
+
+        if (!select.value && items.length > 0) {
+          select.value = "0";
+        }
+      }
+
+      btnAdd.addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'input-group input-group-sm mb-1 new-q-opt-wrapper';
+        div.innerHTML = `
+          <span class="input-group-text bg-light new-q-index-label"></span>
+          <input type="text" class="form-control" name="options" required placeholder="Đáp án...">
+          <button type="button" class="btn btn-outline-danger btn-remove-new-q-opt">Xóa</button>
+        `;
+        container.appendChild(div);
+        updateNewQOptions();
+      });
+
+      container.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-remove-new-q-opt') || e.target.closest('.btn-remove-new-q-opt')) {
+          const item = e.target.closest('.new-q-opt-wrapper');
+          const items = container.querySelectorAll('.new-q-opt-wrapper');
+          if (items.length <= 2) {
+            alert('Một câu hỏi cần tối thiểu 2 đáp án lựa chọn.');
+            return;
+          }
+          item.remove();
+          updateNewQOptions();
+        }
+      });
+
+      updateNewQOptions();
+    }
+  });
+</script>

@@ -1,0 +1,48 @@
+/* Custom Styles for Quizify */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f4f6f9;
+  color: #333333;
+}
+
+#root {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  text-align: left !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Premium smooth transition effects */
+.transition {
+  transition: all 0.25s ease-in-out;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Text style helpers */
+.tracking-tight {
+  letter-spacing: -0.03em;
+}
+
+.tracking-wider {
+  letter-spacing: 0.06em;
+}
+
+/* Button overrides for a more modern pill look */
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}

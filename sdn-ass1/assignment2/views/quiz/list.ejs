@@ -1,0 +1,43 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h4 fw-bold mb-1">Quiz</h1>
+      <p class="text-muted small mb-0">Danh sách bộ đề trắc nghiệm.</p>
+    </div>
+    <a href="/quizzes/create" class="btn btn-primary btn-sm">Tạo</a>
+  </div>
+
+  <% if (quizzes && quizzes.length > 0) { %>
+    <div class="list-group">
+      <% quizzes.forEach(quiz => { %>
+        <div class="list-group-item p-3 mb-3 border rounded bg-white">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.1rem;"><%= quiz.title %></h5>
+                <span class="badge bg-light text-dark border">
+                  <%= quiz.questions ? quiz.questions.length : 0 %> câu
+                </span>
+              </div>
+              <p class="text-muted small mb-0">
+                <%= quiz.description || 'Không có mô tả.' %>
+              </p>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="/quizzes/<%= quiz._id %>" class="btn btn-outline-primary btn-sm">Xem</a>
+              <a href="/quizzes/<%= quiz._id %>/edit" class="btn btn-outline-warning btn-sm">Sửa</a>
+              <form action="/quizzes/<%= quiz._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa Quiz này không?');" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Xóa</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="p-4 text-center my-4 bg-white border rounded">
+      <p class="text-muted mb-0">Không có bộ đề nào.</p>
+      <a href="/quizzes/create" class="btn btn-primary btn-sm mt-2">Tạo</a>
+    </div>
+  <% } %>
+</div>
