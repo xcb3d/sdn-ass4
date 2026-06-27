@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sdn-ass4-pzp9.onrender.com/:path*"
+    },
+    {
+      "source": "/((?!api/|assets/|favicon.svg|icons.svg).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
